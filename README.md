@@ -7,8 +7,8 @@
 | NRP | Nama |
 |:-----------:|:--------:|
 | 5025231289  | Ferzen Kusuma  |
-| 5025xxxxxx  | xxxxxxxxxxxxxxx  |
-| 5025xxxxxx  | xxxxxxxxxxxxxxx  |
+| 5025231284  | Ignacio Leonardo Joseph  |
+| 5025231118  | Azhar Hafiz Andanianto  |
 
 ## Aplikasi Web yang dibuat
 
