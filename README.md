@@ -22,5 +22,11 @@
 
 ## Progress pembuatan dan pembagian tugas per anggota
 
+### Pembagian tugas
+Ferzen Kusuma: Fitur Register dan Login
+
+### Progress per 25 November 2024
+Ferzen Kusuma: Membuat fitur Register (belum css)
+
 ## Dokumentasi website
 `masukkan gambar dari website yang dibuat`

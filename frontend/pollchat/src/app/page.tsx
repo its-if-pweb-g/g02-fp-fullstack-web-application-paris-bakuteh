@@ -1,19 +1,23 @@
 'use client'
 
-import React, { useEffect, useState } from 'react';
-import { getHelloMessage } from '../../services/api.js';
+import React from 'react';
+import Link from 'next/link';
+import styles from '../components/Home.module.css'
 
-export default function Home() {
-  const [message, setMessage] = useState('');
-
-  useEffect(() => {
-    getHelloMessage().then(setMessage);
-  }, []);
-
+export default async function Home() {
   return (
-    <div>
-      <h1>Next.js Frontend</h1>
-      <p>Message from Backend: {message}</p>
+    <div className={styles.container}>
+      <h1 className={styles.header}>Welcome to Pollchat!</h1>
+      <p>Engage in polls and chat with friends. Create your account or log in to get started.</p>
+
+      <div style={{marginTop: '20px'}}>
+        <Link href="/register">
+          <button className={styles.button}>Register</button>
+        </Link>
+        <Link href="/login">
+          <button className={styles.button}>Login</button>
+        </Link>
+      </div>
     </div>
   );
 }
