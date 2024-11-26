@@ -29,7 +29,7 @@ Ferzen Kusuma: Fitur Register dan Login
 Ferzen Kusuma: Membuat fitur Register (belum css)
 
 ### Progress per 26 November 2024
-Ferzen Kusuma: Membuat fitur Login (belum css)
+Ferzen Kusuma: Membuat fitur Login dan membuat design css dasar untuk page home, login, dan register menggunakan tailwind css
 
 ## Dokumentasi website
 `masukkan gambar dari website yang dibuat`
