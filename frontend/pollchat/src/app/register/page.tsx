@@ -31,7 +31,8 @@ export default function RegisterPage(){
               setSuccess('Registration successful!');
               setError(null);
             }
-          } catch (err: any) {
+          } 
+        catch (err: any) {
             setError(err.message || 'Registration failed.');
             setSuccess(null);
           }

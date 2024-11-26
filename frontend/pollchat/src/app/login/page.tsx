@@ -1,32 +1,37 @@
-'use client';
+'use client'
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation'; // For navigation in Next.js 13+
-import axios from 'axios';
+import React, { useState } from "react";
+import {loginUser} from '../../../services/api';
 
-export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+export default function LoginPage(){
+  const [formData, setFormData] = useState({
+    username: '',
+    password: '',
+  });
+
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prevState) => ({ ...prevState, [name]: value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
-      // Make API request to your backend
-      const response = await axios.post('http://localhost:5000/api/login', {
-        email,
-        password,
-      });
+      const response = await loginUser(formData);
 
-      // Save the JWT token to local storage or cookie
-      localStorage.setItem('token', response.data.token);
-
-      // Redirect to home or chat page
-      router.push('/');
-    } catch (err) {
-      setError('Invalid email or password');
+      if (response) {
+        setSuccess('Login successful!');
+        setError(null);
+        localStorage.setItem('token', response.token);
+      }
+    } 
+    catch (err: any) {
+      setError(err.message || 'Login failed.');
+      setSuccess(null);
     }
   };
 
@@ -35,26 +40,30 @@ export default function LoginPage() {
       <h1>Login</h1>
       <form onSubmit={handleSubmit}>
         <div>
-          <label>Email</label>
+          <label>Username:</label>
           <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
+          type="text"
+          name="username"
+          value={formData.username}
+          onChange={handleChange}
+          required
           />
         </div>
         <div>
-          <label>Password</label>
+          <label>Password:</label>
           <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
+          type="password"
+          name="password"
+          value={formData.password}
+          onChange={handleChange}
+          required
           />
         </div>
         <button type="submit">Login</button>
       </form>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+
+      {error && <p style={{color: 'red'}}>{error}</p>}
+      {success && <p style={{ color: 'green' }}>{success}</p>}
     </div>
-  );
+  )
 }

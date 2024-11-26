@@ -10,6 +10,7 @@ const router = express.Router();
 const PORT = process.env.PORT || 5000;
 //const MONGO_URL = `mongodb://user-g:g-for-goodluck@db.nafkhanzam.com/pweb-g`;
 const MONGO_URL = `mongodb://localhost:27017/pweb-g-final-project`;
+const JWT_SECRET = 'superSecret123';
 
 const app = express();
 
@@ -47,6 +48,28 @@ app.post('/api/register', async (req, res) => {
   };
   await users_collection.insertOne(user);
   res.status(201).json({ message: 'User registered successfully' });
+});
+
+app.post('/api/login', async (req, res) => {
+  const { username, password } = req.body;
+
+  const user = await users_collection.findOne({username});
+
+  if(!user){
+    return res.status(400).json({message: 'Invalid username or password'});
+  }
+
+  const isMatch = await bcrypt.compare(password, user.password);
+
+  if(!isMatch){
+    return res.status(400).json({message: 'Invalid username or password'});
+  }
+
+  const token = jwt.sign({ id: user._id, username: user.username }, JWT_SECRET, {
+    expiresIn:'1h',
+  });
+
+  res.status(200).json({ message: 'Login Successful', token });
 });
 
 startServer();
