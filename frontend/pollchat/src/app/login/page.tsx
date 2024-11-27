@@ -1,11 +1,23 @@
 'use client'
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {loginUser} from '../../../services/api';
 import Link from "next/link";
 import styles from '../../components/Login.module.css';
+import { TransitionLink } from "@/components/utils/TransitionLink";
+import { motion } from "motion/react";
+import { jwtDecode } from "jwt-decode";
+import { useRouter } from "next/navigation";
+
+interface DecodedToken {
+  id: string;
+  username: string;
+  exp: number;
+}
 
 export default function LoginPage(){
+  const router = useRouter();
+
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -13,6 +25,26 @@ export default function LoginPage(){
 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+
+    if(token){
+      try{
+        const decoded: DecodedToken = jwtDecode(token);
+        const currentTime = Math.floor(Date.now() / 1000);
+
+        if(decoded.exp > currentTime){
+          // Token is valid, redirect to dashboard
+          router.push('/dashboard');
+        }
+      }
+      catch(error){
+        console.error("Invalid Token", error);
+        localStorage.removeItem('token'); // Remove invalid token
+      }
+    }
+  }, [router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -26,12 +58,19 @@ export default function LoginPage(){
       const response = await loginUser(formData);
 
       if (response) {
+        console.log('Login Response:', response); // Debugging
         setSuccess('Login successful!');
         setError(null);
         localStorage.setItem('token', response.token);
+
+        // Wait briefly to ensure token is saved
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 100);
       }
     } 
     catch (err: any) {
+      console.error('Login Error:', err); // Debugging
       setError(err.message || 'Login failed.');
       setSuccess(null);
     }
@@ -39,7 +78,12 @@ export default function LoginPage(){
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500">
-      <div className="w-full max-w-xs">
+      <motion.div
+      className="w-full max-w-xs"
+      initial={{opacity: 0, x: 25}}
+      animate={{opacity: 1, x: 0}}
+      transition={{ duration: 1, ease: 'easeInOut'}}
+      >
         <h1 className="text-center text-2xl font-bold mb-4 text-white">Login</h1>
         <form onSubmit={handleSubmit} className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 bg-opacity-80 backdrop-blur-md">
           <div className="mb-4">
@@ -75,14 +119,15 @@ export default function LoginPage(){
           </div>
           <div>
             <p>Don't have an account?</p>
-            <Link 
+            <TransitionLink 
             href="/../register"
-            className="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
+            className="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800"
+            >
               Register Here
-            </Link>
+            </TransitionLink>
           </div>
         </form>
-      </div>
+      </motion.div>
     </div>
   )
 }

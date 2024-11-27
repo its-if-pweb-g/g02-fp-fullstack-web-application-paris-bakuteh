@@ -4,6 +4,7 @@ import React, {useState} from "react";
 import {registerUser} from '../../../services/api';
 import styles from '../../components/Register.module.css';
 import { useRouter } from 'next/navigation';
+import { motion } from "motion/react";
 
 
 export default function RegisterPage(){
@@ -48,7 +49,12 @@ export default function RegisterPage(){
 
     return(
         <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500">
-            <div className="w-full max-w-xs">
+            <motion.div
+                className="w-full max-w-xs"
+                initial={{opacity: 0, x: 25}}
+                animate={{opacity: 1, x: 0}}
+                transition={{ duration: 1, ease: 'easeInOut'}}
+            >
                 <h1 className="text-center text-2xl font-bold mb-4 text-white">Register</h1>
                 <form onSubmit={handleSubmit} className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 bg-opacity-80 backdrop-blur-md">
                     <div className="mb-4">
@@ -95,7 +101,7 @@ export default function RegisterPage(){
                         <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Register</button>
                     </div>
                 </form>
-            </div>
+            </motion.div>
         </div>
     );
 }
