@@ -31,5 +31,10 @@ Ferzen Kusuma: Membuat fitur Register (belum css)
 ### Progress per 26 November 2024
 Ferzen Kusuma: Membuat fitur Login dan membuat design css dasar untuk page home, login, dan register menggunakan tailwind css
 
+### Progress per 27 November 2024
+Ferzen Kusuma: 
+- Membuat tag custom '<TransitionLink>' untuk berpindah page (Dapat digunakan untuk navbar)
+- Membuat dashboard redirection jika sudah login, namun jika belum akan diarahkan kembali ke login
+
 ## Dokumentasi website
 `masukkan gambar dari website yang dibuat`

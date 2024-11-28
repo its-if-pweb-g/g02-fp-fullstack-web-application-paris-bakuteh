@@ -69,7 +69,11 @@ app.post('/api/login', async (req, res) => {
     expiresIn:'1h',
   });
 
-  res.status(200).json({ message: 'Login Successful', token });
+  res.status(200).json({ 
+    message: 'Login Successful', 
+    token,
+    user: {username: user.username, id: user._id}
+  });
 });
 
 startServer();

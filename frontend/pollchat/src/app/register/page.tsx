@@ -5,6 +5,7 @@ import {registerUser} from '../../../services/api';
 import styles from '../../components/Register.module.css';
 import { useRouter } from 'next/navigation';
 import { motion } from "motion/react";
+import { TransitionLink } from "@/components/utils/TransitionLink";
 
 
 export default function RegisterPage(){
@@ -99,6 +100,15 @@ export default function RegisterPage(){
                     </div>
                     <div className="flex items-center justify-between">
                         <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Register</button>
+                    </div>
+                    <div>
+                        <p>Already have an account?</p>
+                        <TransitionLink 
+                        href="/../login"
+                        className="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800"
+                        >
+                        Login Here
+                        </TransitionLink>
                     </div>
                 </form>
             </motion.div>
