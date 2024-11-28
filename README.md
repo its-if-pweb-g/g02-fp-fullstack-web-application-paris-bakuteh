@@ -12,13 +12,25 @@
 
 ## Aplikasi Web yang dibuat
 
+Aplikasi Pollchat
+
 ### Fitur yang dibuat
 
 ### Link Deployment (jika ada)
 
 ## Teknologi yang digunakan
 
+- NextJs
+- Typescript
+- NodeJs
+- Express
+- JWT
+- Bcrypt
+- Framer-motion
+
 ## Cara menjalankan aplikasi
+
+Jika menggunakan windows powershell, navigasi ke folder frontend/pollchat. Kemudian, jalankan npm run dev.
 
 ## Progress pembuatan dan pembagian tugas per anggota
 
