@@ -24,7 +24,7 @@ export const registerUser = async (userData) => {
   catch(error){
     throw error;
   }
-}
+};
 
 export const loginUser = async (userData) => {
   try{
@@ -46,4 +46,32 @@ export const loginUser = async (userData) => {
   catch(error){
     throw error;
   }
-}
+};
+
+export const getUserId = async () => {
+  const token = getToken();
+
+  if(!token){
+    throw new Error('No token found');
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/validate-token`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.message || 'Failed to fetch user ID');
+    }
+
+    const data = await response.json();
+    return data.userId; // Return the user ID
+  } 
+  catch (error) {
+    throw error;
+  }
+};

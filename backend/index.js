@@ -6,6 +6,8 @@ const jwt = require('jsonwebtoken'); //For JSON Web Tokens
 const passport = require('passport'); //Middleware for authentication
 const { Strategy, ExtractJwt } = require('passport-jwt'); //Used for JWT authentication (also to extract JWT from request)
 const router = express.Router();
+const http = require('http');
+const setupWebSocket = require('./websocket');
 
 const PORT = process.env.PORT || 5000;
 //const MONGO_URL = `mongodb://user-g:g-for-goodluck@db.nafkhanzam.com/pweb-g`;
@@ -21,11 +23,33 @@ app.use(cors());
 let db = null;
 let users_collection = null;
 
+// Create an HTTP server
+const server = http.createServer(app);
+setupWebSocket(server);
+
+
+// ---------------------------- Utility functions ----------------------------------------------------------------------
+
+const authenticateToken = (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1];
+
+  if(!token) return res.sendStatus(401);
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if(err) return res.sendStatus(403);
+    req.user = user; // Attach user to the request object
+    next();
+  });
+};
+
+
+// ----------------------- Functions to handle server requests -----------------------------------------------------------------
+
 async function startServer(){
   const client = await MongoClient.connect(MONGO_URL);
   db = client.db();
   users_collection = db.collection('users');
-  await app.listen(PORT);
+  await server.listen(PORT);
   console.log(`Server is running on http://localhost:${PORT}`);
 }
 
@@ -73,6 +97,14 @@ app.post('/api/login', async (req, res) => {
     message: 'Login Successful', 
     token,
     user: {username: user.username, id: user._id}
+  });
+});
+
+// Endpoint to verify the token before WebSocket connection
+app.get('/api/validate-token', authenticateToken, (req, res) => {
+  res.status(200).json({ 
+    userId: req.user.id, 
+    username: req.user.username
   });
 });
 
