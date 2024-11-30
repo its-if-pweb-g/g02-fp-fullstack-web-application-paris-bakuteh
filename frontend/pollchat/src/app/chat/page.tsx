@@ -13,13 +13,17 @@ interface ChatMessage{
     type?: 'send-message' | 'read-receipt'; // Add type as optional field
 }
 
+type ChatLogs = Record<string, ChatMessage[]>;
+
 export default function ChatPage(){
     const [message, setMessage] = useState('');
-    const [chatLog, setChatLog] = useState<ChatMessage[]>([]);
-    const ws = useRef<WebSocket | null>(null);
+    const [chatLog, setChatLog] = useState<ChatLogs>({});
     const [userId, setUserId] = useState<string | null>(null);
     const [token, setToken] = useState<string | null>(null);
+    const [selectedChat, setSelectedChat] = useState<string | null>(null); // Track selected chat
+    const [newChatUserId, setNewChatUserId] = useState<string>('');
 
+    const ws = useRef<WebSocket | null>(null);
 
     // Fetch token and user ID if authentication is passed
     useEffect(() => {
@@ -35,7 +39,7 @@ export default function ChatPage(){
             console.error('Error fetching user ID:', error);
             });
         }
-    }, [token]);
+    }, []);
 
     useEffect(() => {
         if(token && userId){
@@ -47,19 +51,25 @@ export default function ChatPage(){
 
             ws.current.onmessage = (event) => {
                 const data: ChatMessage = JSON.parse(event.data);
+                const chatId = data.recipientId === userId ? data.sender : data.recipientId;
 
                 if(data.type === 'read-receipt'){
-                    setChatLog((prevLog) => 
-                        prevLog.map((msg) => 
+                    setChatLog((prevLogs) => ({
+                        ...prevLogs,
+                        [chatId]: prevLogs[chatId]?.map((msg) => 
                             msg._id === data._id
-                                ? { ...msg, readyBy: [...msg.readyBy, data.recipientId] }
-                                : msg
-                        )
-                    );
+                            ? { ...msg, readyBy: [ ...msg.readyBy, data.recipientId] }
+                            : msg
+                        ),
+                    }));
                 }
                 else{
-                    setChatLog((prevLog) => [...prevLog, data]);
-                    sendReadReceipt(data._id);
+                    setChatLog((prevLogs) => ({
+                        ...prevLogs,
+                        [chatId]: [...(prevLogs[chatId] || []), data],
+                    }));
+
+                    sendReadReceipt(data._id, chatId);
                 }
             };
 
@@ -75,60 +85,130 @@ export default function ChatPage(){
                 ws.current?.close();
             };
         }
-    }, [token]);
+    }, [token, userId]);
 
-    const sendReadReceipt = (messageId: string) => {
+    const createNewChat = () => {
+        if(!newChatUserId) return;
+
+        // Check if chat already exists
+        if(!chatLog[newChatUserId]){
+            setChatLog((prevLogs) => ({
+                ...prevLogs,
+                [newChatUserId]: [], // Initialize new chat with an empty array
+            }));
+
+            setSelectedChat(newChatUserId); // Automatically selects the new chat
+        }
+
+        setNewChatUserId(''); // Clear input field
+    };
+
+    const sendReadReceipt = (messageId: string, chatId: string) => {
         if(ws.current && ws.current.readyState === WebSocket.OPEN){
             ws.current.send(
                 JSON.stringify({
                     type: 'read-receipt',
                     _id: messageId,
                     recipientId: userId,
+                    chatId,
                 })
             );
         }
     };
 
     const sendMessage = () => {
-        if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-          const recipientId = 'recipient-user-id'; // Update this to get recipient ID dynamically
+        if (ws.current && ws.current.readyState === WebSocket.OPEN && selectedChat) {
+            const newMessage: ChatMessage = {
+                _id: new Date().toISOString(), // Temporary ID
+                sender: userId!,
+                recipientId: selectedChat,
+                message,
+                timestamp: new Date().toISOString(),
+                readyBy: [],
+            };
+
+
+            ws.current.send(
+                JSON.stringify({
+                type: 'send-message',
+                ...newMessage,
+                })
+            );
     
-          ws.current.send(
-            JSON.stringify({
-              type: 'send-message',
-              sender: userId,
-              recipientId,
-              message,
-            })
-          );
-    
+          // Add sent message to chat log immediately
+          setChatLog((prevLogs) => ({
+            ...prevLogs,
+            [selectedChat]: [...(prevLogs[selectedChat] || []), newMessage],
+          }));
+
           setMessage('');
-        } else {
-          console.error('WebSocket is not open.');
+        } 
+        else {
+          console.error('WebSocket is not open or chat is not selected.');
         }
       };
 
     return (
         <div>
+            {/* List of conversations */}
             <div>
-                {chatLog.map((msg, index) => (
-                    <div key={index}>
-                        <strong>{msg.sender}</strong>: {msg.message}
-                        <span style={{ fontSize: '0.8em', color: 'gray '}}>
-                            {' '}
-                            - {new Date(msg.timestamp).toLocaleTimeString()}
-                            {msg.readyBy.includes(userId) && ' ✓ Read'}
-                        </span>
-                    </div>
-                ))}
+                <h2>Chats</h2>
+                <ul>
+                    {Object.keys(chatLog).map((chatId) => (
+                        <li
+                        key={chatId}
+                        onClick={() => setSelectedChat(chatId)}
+                        style={{
+                            cursor: 'pointer',
+                            fontWeight: selectedChat === chatId ? 'bold' : 'normal',
+                        }}
+                        >
+                            Chat with {chatId}
+                        </li>
+                    ))}
+                </ul>
+
+                {/* New Chat creation */}
+                <div>
+                    <input 
+                    type="text"
+                    value={newChatUserId}
+                    onChange={(e) => setNewChatUserId(e.target.value)}
+                    placeholder="Enter User ID to chat with"
+                    />
+                    <button onClick={createNewChat}>Create New Chat</button>
+                </div>
             </div>
-            <input
-                type="text"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Type a message..."
-            />
-            <button onClick={sendMessage}>Send</button>
+
+            {/* Chat Messages */}
+            <div>
+                <h2>Chat Log</h2>
+                {selectedChat && chatLog[selectedChat] ? ( // Check if selected chat exists
+                    <>
+                        <div>
+                            {chatLog[selectedChat]?.map((msg, index) => (
+                                <div key={index}>
+                                    <strong>{msg.sender}</strong>: {msg.message}
+                                    <span style={{ fontSize: '0.8em', color: 'gray' }}>
+                                        {' '}
+                                        - {new Date(msg.timestamp).toLocaleTimeString()}
+                                        {msg.readyBy.includes(userId ?? '') && ' ✓ Read'}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                        <input
+                        type="text"
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        placeholder="Type a message..." 
+                        />
+                        <button onClick={sendMessage}>Send</button>
+                    </>
+                ) : (
+                    <p>Please select a chat to view messages.</p>
+                )}
+            </div>
         </div>
     );
 }

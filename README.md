@@ -52,5 +52,8 @@ Ferzen Kusuma:
 ### Progress per 29 November 2024
 Ferzen Kusuma: Mulai membuat fitur chat (belum selesai)
 
+### Progress per 30 November 2024
+Ferzen Kusuma: Melanjutkan fitur chat
+
 ## Dokumentasi website
 `masukkan gambar dari website yang dibuat`
