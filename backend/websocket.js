@@ -1,7 +1,7 @@
 const WebSocket = require('ws');
 const { MongoClient, ObjectId } = require('mongodb');
 
-const MONGO_URL = `mongodb://localhost:27017/pweb-g-final-project`;
+const MONGO_URL = `mongodb+srv://Ferzen_K:${encodeURIComponent(process.env.MONGO_PASSWORD)}@fp-pweb.lhejd.mongodb.net/?retryWrites=true&w=majority&appName=FP-PWEB`;
 let db = null;
 let chat_collection = null;
 let users = new Map(); // Map to store connected users and their WebSocket connections

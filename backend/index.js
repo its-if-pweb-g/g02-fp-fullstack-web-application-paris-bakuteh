@@ -1,3 +1,6 @@
+require('dotenv').config();
+
+
 const express = require('express');
 const cors = require('cors');
 const { MongoClient, ObjectId } = require('mongodb');
@@ -11,7 +14,7 @@ const setupWebSocket = require('./websocket');
 
 const PORT = process.env.PORT || 5000;
 //const MONGO_URL = `mongodb://user-g:g-for-goodluck@db.nafkhanzam.com/pweb-g`;
-const MONGO_URL = `mongodb://localhost:27017/pweb-g-final-project`;
+const MONGO_URL = `mongodb+srv://Ferzen_K:${encodeURIComponent(process.env.MONGO_PASSWORD)}@fp-pweb.lhejd.mongodb.net/?retryWrites=true&w=majority&appName=FP-PWEB`;
 const JWT_SECRET = 'superSecret123';
 
 const app = express();
