@@ -55,5 +55,8 @@ Ferzen Kusuma: Mulai membuat fitur chat (belum selesai)
 ### Progress per 30 November 2024
 Ferzen Kusuma: Melanjutkan fitur chat
 
+### Progress per 3 Desember 2024
+Azhar Hafiz Andanianto: Mengubah format backend dari js ke ts
+
 ## Dokumentasi website
 `masukkan gambar dari website yang dibuat`
