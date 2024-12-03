@@ -96,7 +96,7 @@ app.post('/api/register', asyncHandler(async (req: Request, res: Response) => {
     return res.status(400).json({ message: 'Username already exists' });
   }
 
-  const existingUserEmail = await userCollection.findOne({ username });
+  const existingUserEmail = await userCollection.findOne({ email });
   if (existingUserEmail) {
     return res.status(400).json({ message: 'Email already used' });
   }
