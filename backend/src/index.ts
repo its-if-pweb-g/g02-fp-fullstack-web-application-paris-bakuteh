@@ -150,4 +150,5 @@ app.get('/api/users', authenticateToken, asyncHandler(async (req: CustomRequest,
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(process.env.MONGO_URL);
 });
