@@ -58,5 +58,7 @@ Ferzen Kusuma: Melanjutkan fitur chat
 ### Progress per 3 Desember 2024
 Azhar Hafiz Andanianto: Mengubah format backend dari js ke ts
 
+Ignacio Leonardo Joseph : Menambahkan Navbar
+
 ## Dokumentasi website
 `masukkan gambar dari website yang dibuat`
