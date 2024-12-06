@@ -2,6 +2,8 @@
 
 import React, {useEffect, useState, useRef} from "react";
 import { getUserId } from "../../../services/api";
+import { useRouter } from "next/navigation";
+import { jwtDecode } from "jwt-decode";
 
 interface ChatMessage{
     _id: string;
@@ -13,6 +15,12 @@ interface ChatMessage{
     type?: 'send-message' | 'read-receipt'; // Add type as optional field
 }
 
+interface DecodedToken {
+    id: string;
+    username: string;
+    exp: number;
+  }
+
 type ChatLogs = Record<string, ChatMessage[]>;
 
 export default function ChatPage(){
@@ -22,8 +30,33 @@ export default function ChatPage(){
     const [token, setToken] = useState<string | null>(null);
     const [selectedChat, setSelectedChat] = useState<string | null>(null); // Track selected chat
     const [newChatUserId, setNewChatUserId] = useState<string>('');
+    
+    const router = useRouter();
 
     const ws = useRef<WebSocket | null>(null);
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+          try {
+            const decoded: DecodedToken = jwtDecode(token);
+            const currentTime = Math.floor(Date.now() / 1000);
+    
+            if (decoded.exp < currentTime) {
+              // Token expired, redirect to login
+              localStorage.removeItem('token');
+              router.push('/login');
+            }
+          } catch (error) {
+            // Invalid token, redirect to login
+            localStorage.removeItem('token');
+            router.push('/login');
+          }
+        } else {
+          // No token, redirect to login
+          router.push('/login');
+        }
+      }, [router]);
 
     // Fetch token and user ID if authentication is passed
     useEffect(() => {
