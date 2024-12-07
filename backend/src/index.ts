@@ -59,9 +59,9 @@ setupWebSocket(server);
 // Set up a Custom Request for authentication
 interface CustomRequest extends Request {
   user?: {
+      id: string;
       username: string;
       role: string;
-      created_at?: Date;
   };
 }
 
@@ -139,7 +139,7 @@ app.post('/api/login', asyncHandler(async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Unauthorized: Invalid username or password.' });
   }
 
-  const token = jwt.sign({ id: user._id, username: user.username, role: user.role, created_at: user.created_at }, JWT_SECRET, {
+  const token = jwt.sign({ id: user._id, username: user.username, role: user.role }, JWT_SECRET, {
     expiresIn: TOKEN_EXPIRATION,
   });
 
@@ -151,13 +151,14 @@ app.post('/api/login', asyncHandler(async (req: Request, res: Response) => {
 }));
 
 app.get('/api/admin', authenticateToken, authenticateAdmin, (req: CustomRequest, res: Response) => {
-  const user = req.user;
-
-  res.status(200).json({ message: 'Permission granted. Welcome, ${user.username}.'});
+  res.status(200).json({ message: `Permission granted. Welcome, ${req.user?.username}.` });
 });
 
 app.get('/api/users', authenticateToken, asyncHandler(async (req: CustomRequest, res: Response) => {
-  const users = await userCollection.find({ username: { $ne: req.user?.username } }).project({ username: 1, _id: 0 }).toArray();
+  const users = await userCollection
+    .find({ username: { $ne: req.user?.username } })
+    .project({ username: 1, _id: 0 })
+    .toArray();
   res.status(200).json(users);
 }));
 
@@ -254,7 +255,13 @@ app.post('/api/polls/:pollId/vote', authenticateToken, asyncHandler(async (req: 
 
 
 
-app.listen(PORT, () => {
+// Error Handling
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Internal Server Error' });
+});
+
+server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
-  console.log(process.env.MONGO_URL);
+  console.log(`MongoDB URL: ${MONGO_URL}`);
 });
