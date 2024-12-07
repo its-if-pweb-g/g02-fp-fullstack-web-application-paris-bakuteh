@@ -99,4 +99,37 @@ export const fetchUserDetails = async (userId) => {
   catch(error){
     throw error;
   }
+  
 };
+export const createPoll = async (pollData) => {
+  const token = getToken();
+  const response = await fetch(`${API_BASE_URL}/polls`, {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(pollData),
+  });
+  if (!response.ok) throw new Error('Failed to create poll');
+};
+
+export const getPolls = async () => {
+  const response = await fetch(`${API_BASE_URL}/polls`);
+  if (!response.ok) throw new Error('Failed to fetch polls');
+  return response.json();
+};
+
+export const votePoll = async (pollId, optionIndex) => {
+  const token = getToken();
+  const response = await fetch(`${API_BASE_URL}/polls/${pollId}/vote`, {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ optionIndex }),
+  });
+  if (!response.ok) throw new Error('Failed to vote');
+};
+

@@ -35,6 +35,19 @@ MongoClient.connect(MONGO_URL)
         process.exit(1);
     });
 
+let pollCollection: Collection;
+
+MongoClient.connect(MONGO_URL)
+    .then((client) => {
+      db = client.db(DATABASE_NAME);
+      pollCollection = db.collection('polls'); // Tambahkan koleksi polls
+       console.log(`Connected to MongoDB database: ${DATABASE_NAME}`);
+    })
+    .catch((error) => {
+        console.error("Failed to connect to MongoDB:", error);
+        process.exit(1);
+    });
+    
 // Middleware to handle JSON requests
 app.use(express.json());
 app.use(cors());
@@ -176,6 +189,70 @@ app.get('/api/singleUser/:userId', async (req, res) => {
     res.status(500).json({ error: 'Internal server error '});
   }
 });
+
+// Create a new poll
+app.post('/api/polls', authenticateToken, asyncHandler(async (req: CustomRequest, res: Response) => {
+  const { title, options } = req.body;
+
+  if (!title || !options || !Array.isArray(options) || options.length < 2) {
+      return res.status(400).json({ error: 'Invalid data. A poll must have a title and at least 2 options.' });
+  }
+
+  const poll = {
+      title,
+      options: options.map((option: string) => ({
+          text: option,
+          votes: 0,
+      })),
+      createdBy: req.user?.username,
+      createdAt: new Date(),
+  };
+
+  const result = await pollCollection.insertOne(poll);
+  res.status(201).json({ message: 'Poll created successfully.', pollId: result.insertedId });
+}));
+
+// Get all polls
+app.get('/api/polls', asyncHandler(async (req: Request, res: Response) => {
+  const polls = await pollCollection.find().toArray();
+  res.status(200).json(polls);
+}));
+
+// Vote on a poll
+app.post('/api/polls/:pollId/vote', authenticateToken, asyncHandler(async (req: CustomRequest, res: Response) => {
+  const { pollId } = req.params;
+  const { optionIndex } = req.body;
+  const username = req.user?.username;
+
+  if (!ObjectId.isValid(pollId)) {
+      return res.status(400).json({ error: 'Invalid Poll ID format.' });
+  }
+
+  const poll = await pollCollection.findOne({ _id: new ObjectId(pollId) });
+  if (!poll) {
+      return res.status(404).json({ error: 'Poll not found.' });
+  }
+
+  if (poll.options.some((option: any) => option.votedBy?.includes(username))) {
+      return res.status(400).json({ error: 'You have already voted on this poll.' });
+  }
+
+  if (optionIndex < 0 || optionIndex >= poll.options.length) {
+      return res.status(400).json({ error: 'Invalid option index.' });
+  }
+
+  await pollCollection.updateOne(
+      { _id: new ObjectId(pollId), [`options.${optionIndex}.votes`]: { $exists: true } },
+      {
+          $inc: { [`options.${optionIndex}.votes`]: 1 },
+          $addToSet: { [`options.${optionIndex}.votedBy`]: username }, // Add username to votedBy
+      }
+  );
+
+  res.status(200).json({ message: 'Vote registered successfully.' });
+}));
+
+
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
