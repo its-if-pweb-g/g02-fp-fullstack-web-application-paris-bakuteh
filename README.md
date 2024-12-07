@@ -77,7 +77,7 @@ Ferzen Kusuma: Menambahkan fitur logout dan responsivitas pada navbar utama
 
 Azhar Hafiz Andanianto: Implementasi fitur chat/message
 
-Ignacio Leonardo: menambahkan fitur Poll dalam page polls
+Ignacio Leonardo: menambahkan fitur Poll dalam page polls, Menambahkan navbar di setiap page.
 
 ## Dokumentasi website
 `masukkan gambar dari website yang dibuat`
