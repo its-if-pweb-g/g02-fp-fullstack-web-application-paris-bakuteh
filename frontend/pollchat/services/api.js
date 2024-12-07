@@ -75,3 +75,28 @@ export const getUserId = async () => {
     throw error;
   }
 };
+
+export const fetchUserDetails = async (userId) => {
+  if(!userId){
+    throw new Error('User ID is required to fetch user details.');
+  }
+
+  try{
+    const response = await fetch(`${API_BASE_URL}/singleUser/${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if(!response.ok){
+      const data = await response.json();
+      throw new Error(data.message || 'Failed to fetch user details.');
+    }
+
+    return await response.json();
+  }
+  catch(error){
+    throw error;
+  }
+};

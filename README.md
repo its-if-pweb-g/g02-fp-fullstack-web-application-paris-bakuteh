@@ -16,6 +16,11 @@ Aplikasi Pollchat
 
 ### Fitur yang dibuat
 
+- Fitur Register dan Login
+- Fitur Chat
+- Fitur Logout
+- Fitur Poll
+
 ### Link Deployment (jika ada)
 
 ## Teknologi yang digunakan
@@ -36,7 +41,7 @@ Jika menggunakan windows powershell, navigasi ke folder frontend/pollchat. Kemud
 ## Progress pembuatan dan pembagian tugas per anggota
 
 ### Pembagian tugas
-Ferzen Kusuma: Fitur Register, Login, dan Chat
+Ferzen Kusuma: Fitur Register, Login, Logout, dan sebagian Chat
 
 Azhar Hafiz Andanianto: Fitur chat
 
@@ -66,6 +71,9 @@ Ignacio Leonardo Joseph : Menambahkan Navbar
 
 ### Progress per 6 Desember 2024
 Ferzen Kusuma: Mengubah desain dashboard
+
+### Progress per 7 Desember 2024
+Ferzen Kusuma: Menambahkan fitur logout dan responsivitas pada navbar utama
 
 ## Dokumentasi website
 `masukkan gambar dari website yang dibuat`
