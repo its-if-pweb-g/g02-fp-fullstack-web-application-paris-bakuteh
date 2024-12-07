@@ -74,7 +74,9 @@ Ferzen Kusuma: Mengubah desain dashboard
 
 ### Progress per 7 Desember 2024
 Ferzen Kusuma: Menambahkan fitur logout dan responsivitas pada navbar utama
+
 Azhar Hafiz Andanianto: Implementasi fitur chat/message
+
 Ignacio Leonardo: menambahkan fitur Poll dalam page polls
 
 ## Dokumentasi website
