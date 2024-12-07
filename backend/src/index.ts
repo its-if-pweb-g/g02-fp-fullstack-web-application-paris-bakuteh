@@ -193,7 +193,7 @@ app.get('/api/singleUser/:userId', async (req, res) => {
 
 // Create a new poll
 app.post('/api/polls', authenticateToken, asyncHandler(async (req: CustomRequest, res: Response) => {
-  const { title, options } = req.body;
+  const { title, options, expiryDate } = req.body;
 
   if (!title || !options || !Array.isArray(options) || options.length < 2) {
       return res.status(400).json({ error: 'Invalid data. A poll must have a title and at least 2 options.' });
@@ -204,9 +204,11 @@ app.post('/api/polls', authenticateToken, asyncHandler(async (req: CustomRequest
       options: options.map((option: string) => ({
           text: option,
           votes: 0,
+          votedBy: [],
       })),
       createdBy: req.user?.username,
       createdAt: new Date(),
+      expiryDate: expiryDate ? new Date(expiryDate) : null, // Save expiry date if provided
   };
 
   const result = await pollCollection.insertOne(poll);
@@ -215,7 +217,14 @@ app.post('/api/polls', authenticateToken, asyncHandler(async (req: CustomRequest
 
 // Get all polls
 app.get('/api/polls', asyncHandler(async (req: Request, res: Response) => {
-  const polls = await pollCollection.find().toArray();
+  const now = new Date();
+  const polls = await pollCollection.find({
+      $or: [
+          { expiryDate: null }, // Include polls without expiry date
+          { expiryDate: { $gt: now } }, // Include polls that haven't expired
+      ],
+  }).toArray();
+
   res.status(200).json(polls);
 }));
 
@@ -234,7 +243,11 @@ app.post('/api/polls/:pollId/vote', authenticateToken, asyncHandler(async (req: 
       return res.status(404).json({ error: 'Poll not found.' });
   }
 
-  if (poll.options.some((option: any) => option.votedBy?.includes(username))) {
+  if (poll.expiryDate && new Date(poll.expiryDate) <= new Date()) {
+      return res.status(400).json({ error: 'This poll has expired.' });
+  }
+
+  if (poll.options.some((option: any) => option.votedBy.includes(username))) {
       return res.status(400).json({ error: 'You have already voted on this poll.' });
   }
 
