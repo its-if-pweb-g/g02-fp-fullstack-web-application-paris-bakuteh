@@ -7,9 +7,11 @@ import Link from 'next/link'; // Menggunakan bawaan Link dari Next.js
 
 interface NavbarProps {
   currentPath: string; // Menunjukkan halaman yang sedang aktif
+  currentUsername: string;
+  currentEmail: string;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ currentPath }) => {
+const Navbar: React.FC<NavbarProps> = ({ currentPath, currentUsername, currentEmail }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const router = useRouter();
@@ -64,7 +66,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPath }) => {
         </button>
 
         {/* Profile Dropdown */}
-        <div className="relative flex items-center md:order-2">
+        <div className="relative flex items-center md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
           <button
             type="button"
             className="flex text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600"
@@ -79,20 +81,26 @@ const Navbar: React.FC<NavbarProps> = ({ currentPath }) => {
               height={50}
             />
           </button>
-          {isDropdownOpen && (
-            <div className="absolute right-0 z-10 w-48 mt-2 bg-white rounded-lg shadow dark:bg-gray-700">
-              <ul>
-                <li>
-                  <button
-                    onClick={handleLogout}
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-white"
-                  >
-                    Logout
-                  </button>
-                </li>
-              </ul>
+
+          {/*Dropdown Menu*/}
+          <div 
+            className={`absolute right-0 z-10 w-48 ${isDropdownOpen ? 'block' : 'hidden'} top-full mt-2 text-base bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 dark:divide-gray-600`}
+          >
+            <div className="px-4 py-3">
+              <span className="block text-sm text-gray-900 dark:text-white">{currentUsername || 'Loading...'}</span>
+              <span className="block text-sm  text-gray-500 truncate dark:text-gray-400">{currentEmail || 'Loading...'}</span>
             </div>
-          )}
+            <ul className="py-2">
+              <li>
+                <button
+                onClick={handleLogout}
+                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
+                >
+                  Log Out
+                </button>
+              </li>
+            </ul>
+            </div>
         </div>
 
         {/* Main Navbar */}

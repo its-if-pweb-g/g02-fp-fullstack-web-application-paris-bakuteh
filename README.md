@@ -79,5 +79,8 @@ Azhar Hafiz Andanianto: Implementasi fitur chat/message
 
 Ignacio Leonardo: menambahkan fitur Poll dalam page polls, Menambahkan navbar di setiap page.
 
+### Progress per 8 Desember 2024
+Ferzen Kusuma: Memperbaiki navbar
+
 ## Dokumentasi website
 `masukkan gambar dari website yang dibuat`

@@ -4,6 +4,15 @@ import React, { useState, useEffect } from "react";
 import { createPoll, getPolls, votePoll } from "../../../services/api";
 import Navbar from "../../components/Navbar";
 import "./PollsPage.css"; // Import file CSS
+import { fetchUserDetails } from "../../../services/api";
+import { useRouter } from "next/navigation";
+import { jwtDecode } from "jwt-decode";
+
+interface DecodedToken {
+  id: string;
+  username: string;
+  exp: number;
+}
 
 export default function PollsPage() {
   const [polls, setPolls] = useState([]);
@@ -11,6 +20,43 @@ export default function PollsPage() {
   const [options, setOptions] = useState(["", ""]);
   const [expiryDate, setExpiryDate] = useState(""); // New state for expiry date
   const [error, setError] = useState("");
+  const [user, setUser] = useState<{ id: string; username: string; email: string} | null>(null);
+
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const decoded: DecodedToken = jwtDecode(token);
+        const currentTime = Math.floor(Date.now() / 1000);
+
+        if (decoded.exp < currentTime) {
+          // Token expired, redirect to login
+          localStorage.removeItem('token');
+          router.push('/login');
+        }
+
+        //If token is valid, then fetch user details
+        else{
+          fetchUserDetails(decoded.id)
+          .then((userData) => setUser(userData))
+          .catch((err) => {
+            console.error(err);
+            router.push('/login');
+          });
+        }
+      } catch (error) {
+        // Invalid token, redirect to login
+        localStorage.removeItem('token');
+        router.push('/login');
+      }
+    } 
+    else {
+      // No token, redirect to login
+      router.push('/login');
+    }
+  }, [router]);
 
   // Fetch polls on load
   useEffect(() => {
@@ -67,7 +113,7 @@ export default function PollsPage() {
 
   return (
     <>
-      <Navbar currentPath="/polls" />
+      <Navbar currentPath="/polls" currentUsername={user?.username || ''} currentEmail={user?.email || ''}/>
       <div className="polls-container">
         <h1 className="title">Polls</h1>
 

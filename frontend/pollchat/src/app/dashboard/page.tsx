@@ -71,7 +71,7 @@ export default function DashboardPage() {
   };
   return (
     <>
-      <Navbar currentPath="/dashboard" />
+      <Navbar currentPath="/dashboard" currentUsername={user?.username || ''} currentEmail={user?.email || ''}/>
       <div>
         {/* Konten halaman dashboard */}
       </div>

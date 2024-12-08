@@ -5,6 +5,7 @@ import { getUserId } from "../../../services/api";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 import Navbar from '../../components/Navbar';
+import { fetchUserDetails } from "../../../services/api";
 
 interface ChatMessage {
   _id: string;
@@ -31,6 +32,7 @@ export default function ChatPage() {
   const [token, setToken] = useState<string | null>(null);
   const [selectedChat, setSelectedChat] = useState<string | null>(null); // Track selected chat
   const [newChatUserId, setNewChatUserId] = useState<string>('');
+  const [user, setUser] = useState<{ id: string; username: string; email: string} | null>(null);
 
   const router = useRouter();
   const ws = useRef<WebSocket | null>(null);
@@ -47,12 +49,23 @@ export default function ChatPage() {
           localStorage.removeItem('token');
           router.push('/login');
         }
+
+        //If token is valid, then fetch user details
+        else{
+          fetchUserDetails(decoded.id)
+          .then((userData) => setUser(userData))
+          .catch((err) => {
+            console.error(err);
+            router.push('/login');
+          });
+        }
       } catch (error) {
         // Invalid token, redirect to login
         localStorage.removeItem('token');
         router.push('/login');
       }
-    } else {
+    } 
+    else {
       // No token, redirect to login
       router.push('/login');
     }
@@ -180,7 +193,7 @@ export default function ChatPage() {
 
   return (
     <>
-      <Navbar currentPath="/chat" />
+      <Navbar currentPath="/chat" currentUsername={user?.username || ''} currentEmail={user?.email || ''}/>
       <div>
         {/* List of conversations */}
         <div>
