@@ -26,18 +26,19 @@ MongoClient.connect(MONGO_URL)
     });
 
 interface ChatMessage {
+    _id: string;
     sender: string;
-    recipientId: string;
+    recipient: string;
     message: string;
     timestamp: Date;
     readBy: string[];
 }
   
 interface MessageData {
-    type: 'send-message' | 'read-receipt';
+    type: 'send-message' | 'read-receipt' | 'fetch-messages';
     token?: string;
     sender: string;
-    recipientId?: string;
+    recipient?: string;
     message?: string;
     messageId?: string;
 }
@@ -89,63 +90,108 @@ export default function setupWebSocket(server: any): void {
             try {
                 const messageData = JSON.parse(data) as MessageData;
 
-                if (messageData.type === 'send-message' && messageData.recipientId && messageData.message) {
-                    // Send message logic
-                    const { sender, recipientId, message } = messageData;
+                switch (messageData.type) {
+                    case 'fetch-messages':
+                        if (messageData.sender && messageData.recipient) {
+                            const { sender, recipient } = messageData;
 
-                    // Save message to MongoDB
-                    const chatMessage: ChatMessage = {
-                        sender,
-                        recipientId,
-                        message,
-                        timestamp: new Date(),
-                        readBy: [], // Initially empty, will be updated when recipient reads it
-                    };
+                            const chat = await chatCollection.findOne({
+                                participants: { $all: [sender, recipient] },
+                            });
 
-                    // Check if a chat between participants exists
-                    const existingChat = await chatCollection.findOne({ participants: { $all: [sender, recipientId] } });
-                    if (existingChat) {
-                        // Chat exists, update it by pushing the new message
-                        await chatCollection.updateOne(
-                            { participants: { $all: [sender, recipientId] } }, // Find chat between participants
-                            { $push: { messages: chatMessage } } // Add message to chat
-                        );
-                    } else {
-                        // Chat does not exist, create a new document
-                        await chatCollection.insertOne({
-                            participants: [sender, recipientId],
-                            messages: [chatMessage],
-                        });
-                    }
+                            ws.send(
+                                JSON.stringify({
+                                    type: 'fetch-messages',
+                                    messages: chat?.messages || [],
+                                })
+                            );
+                        }
+                        break;
 
-                    const recipientWs = users.get(recipientId);
+                    case 'send-message':
+                        if (messageData.recipient && messageData.message) {
+                            // Send message logic
+                            const { sender, recipient, message } = messageData;
 
-                    // Send message to recipient if they're online
-                    if (recipientWs && recipientWs.readyState === WebSocket.OPEN) {
-                        recipientWs.send(JSON.stringify({ type: 'send-message', ...chatMessage }));
-                    }
-                } else if (messageData.type === 'read-receipt' && messageData.messageId) {
-                    // Read receipt logic
-                    const { messageId, sender } = messageData;
+                            // Generate a temporary unique ID for the message
+                            const tempMessageId = new ObjectId().toHexString();
 
-                    await chatCollection.updateOne(
-                        { 'messages._id': new ObjectId(messageId) },
-                        { $addToSet: { 'messages.$.readBy': sender } }
-                    );
+                            // Save message to MongoDB
+                            const chatMessage: ChatMessage = {
+                                _id: tempMessageId,
+                                sender,
+                                recipient,
+                                message,
+                                timestamp: new Date(),
+                                readBy: [], // Initially empty, will be updated when recipient reads it
+                            };
 
-                    // Notify sender that their message has been read
-                    const senderWs = users.get(messageData.sender);
-                    if(senderWs && senderWs.readyState === WebSocket.OPEN){
-                        senderWs.send(
-                            JSON.stringify({
-                                type: 'read-receipt',
-                                messageId,
-                                recipientId: userId,
-                            })
-                        );
-                    }
-                } else {
-                    ws.send(JSON.stringify({ error: 'Invalid message type or missing fields' }));
+                            // Check if a chat between participants exists
+                            const existingChat = await chatCollection.findOne({ participants: { $all: [sender, recipient] } });
+                            if (existingChat) {
+                                // Chat exists, update it by pushing the new message
+                                await chatCollection.updateOne(
+                                    { _id: existingChat._id }, // Find the chat document
+                                    { $push: { messages: chatMessage } } // Add message to chat
+                                );
+                            } else {
+                                // Chat does not exist, create a new document
+                                await chatCollection.insertOne({
+                                    participants: [sender, recipient],
+                                    messages: [chatMessage],
+                                });
+                            }
+
+                            // Fetch the updated chat to get the final `_id` for the new message
+                            const updatedChat = await chatCollection.findOne({
+                                participants: { $all: [sender, recipient] },
+                            });
+
+                            // Get the actual `id` of the newly saved message
+                            const savedMessage = updatedChat?.messages.find(
+                                (msg) => msg._id === tempMessageId
+                            );
+
+                            if (savedMessage) {
+                                chatMessage._id = savedMessage._id; // Update with the final message ID
+                            }
+
+                            const recipientWs = users.get(recipient);
+
+                            // Send message to recipient if they're online
+                            if (recipientWs && recipientWs.readyState === WebSocket.OPEN) {
+                                recipientWs.send(JSON.stringify({ type: 'send-message', ...chatMessage }));
+                            }
+                        }
+                        break;
+
+                    case 'read-receipt':
+                        if (messageData.messageId) {
+                            // Read receipt logic
+                            const { messageId, sender } = messageData;
+
+                            await chatCollection.updateOne(
+                                { 'messages._id': new ObjectId(messageId) },
+                                { $addToSet: { 'messages.$.readBy': sender } }
+                            );
+
+                            // Notify sender that their message has been read
+                            const senderWs = users.get(messageData.sender);
+                            if(senderWs && senderWs.readyState === WebSocket.OPEN){
+                                senderWs.send(
+                                    JSON.stringify({
+                                        type: 'read-receipt',
+                                        messageId,
+                                        recipient: user.username,
+                                    })
+                                );
+                            }
+                        }
+                        break;
+                        
+                    default:
+                        ws.send(JSON.stringify({ error: 'Invalid message type or missing fields' }));
+                        break;
                 }
             } catch (error) {
                 console.error('Error handling message:', error);

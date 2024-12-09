@@ -1,12 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { createPoll, getPolls, votePoll } from "../../../services/api";
+import { api } from "../../../services/api";
 import Navbar from "../../components/Navbar";
 import "./PollsPage.css";
-import { fetchUserDetails } from "../../../services/api";
 import { useRouter } from "next/navigation";
-import jwtDecode from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 
 interface DecodedToken {
   id: string;
@@ -80,7 +79,7 @@ export default function PollsPage() {
           localStorage.removeItem("token");
           router.push("/login");
         } else {
-          fetchUserDetails(decoded.id)
+          api.fetchUserDetails(decoded.id)
             .then((userData) => setUser({ ...userData, token }))
             .catch((err) => {
               console.error(err);
@@ -99,7 +98,7 @@ export default function PollsPage() {
   useEffect(() => {
     const fetchPolls = async () => {
       try {
-        const data = await getPolls();
+        const data = await api.getPolls();
         const now = new Date();
 
         const activePolls = data.filter((poll) => {
@@ -124,11 +123,11 @@ export default function PollsPage() {
         return;
       }
 
-      await createPoll({ title, options, expiryDate });
+      await api.createPoll({ title, options, expiryDate });
       setTitle("");
       setOptions(["", ""]);
       setExpiryDate("");
-      const data = await getPolls();
+      const data = await api.getPolls();
       setPolls(data);
     } catch (err) {
       setError("Failed to create poll");
@@ -137,8 +136,8 @@ export default function PollsPage() {
 
   const handleVote = async (pollId, optionIndex) => {
     try {
-      await votePoll(pollId, optionIndex);
-      const data = await getPolls();
+      await api.votePoll(pollId, optionIndex);
+      const data = await api.getPolls();
       setPolls(data);
     } catch (err) {
       const errorMessage =

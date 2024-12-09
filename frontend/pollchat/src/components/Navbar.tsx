@@ -122,12 +122,12 @@ const Navbar: React.FC<NavbarProps> = ({ currentPath, currentUsername, currentEm
             </li>
             <li>
               <Link
-                href="/chat"
+                href="/message"
                 className={`block py-2 px-3 rounded ${
-                  currentPath === '/chat' ? 'bg-blue-700 text-white' : 'text-gray-900'
+                  currentPath === '/message' ? 'bg-blue-700 text-white' : 'text-gray-900'
                 }`}
               >
-                Chats
+                Messages
               </Link>
             </li>
             <li>
