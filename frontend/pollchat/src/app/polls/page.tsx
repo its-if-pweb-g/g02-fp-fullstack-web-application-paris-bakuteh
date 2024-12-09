@@ -100,16 +100,18 @@ export default function PollsPage() {
     }
   };
 
-  // Vote on a poll
-  const handleVote = async (pollId, optionIndex) => {
-    try {
-      await votePoll(pollId, optionIndex);
-      const data = await getPolls();
-      setPolls(data);
-    } catch (err) {
-      setError("You have already voted on this poll or an error occurred.");
-    }
-  };
+// Vote on a poll
+const handleVote = async (pollId, optionIndex) => {
+  try {
+    await votePoll(pollId, optionIndex);
+    const data = await getPolls(); // Refresh polls after a successful vote
+    setPolls(data);
+  } catch (err) {
+    const errorMessage = err.response?.data?.error || "An error occurred while voting.";
+    setError(errorMessage);
+  }
+};
+
 
   return (
     <>

@@ -235,36 +235,41 @@ app.post('/api/polls/:pollId/vote', authenticateToken, asyncHandler(async (req: 
   const username = req.user?.username;
 
   if (!ObjectId.isValid(pollId)) {
-      return res.status(400).json({ error: 'Invalid Poll ID format.' });
+    return res.status(400).json({ error: 'Invalid Poll ID format.' });
   }
 
   const poll = await pollCollection.findOne({ _id: new ObjectId(pollId) });
   if (!poll) {
-      return res.status(404).json({ error: 'Poll not found.' });
+    return res.status(404).json({ error: 'Poll not found.' });
   }
 
   if (poll.expiryDate && new Date(poll.expiryDate) <= new Date()) {
-      return res.status(400).json({ error: 'This poll has expired.' });
+    return res.status(400).json({ error: 'This poll has expired.' });
   }
 
-  if (poll.options.some((option: any) => option.votedBy.includes(username))) {
-      return res.status(400).json({ error: 'You have already voted on this poll.' });
+  // Check if the user has already voted on this poll
+  const userVoted = poll.options.some((option: any) => option.votedBy.includes(username));
+  if (userVoted) {
+    return res.status(400).json({ error: 'You have already voted on this poll.' });
   }
 
+  // Validate optionIndex
   if (optionIndex < 0 || optionIndex >= poll.options.length) {
-      return res.status(400).json({ error: 'Invalid option index.' });
+    return res.status(400).json({ error: 'Invalid option index.' });
   }
 
+  // Register the vote
   await pollCollection.updateOne(
-      { _id: new ObjectId(pollId), [`options.${optionIndex}.votes`]: { $exists: true } },
-      {
-          $inc: { [`options.${optionIndex}.votes`]: 1 },
-          $addToSet: { [`options.${optionIndex}.votedBy`]: username }, // Add username to votedBy
-      }
+    { _id: new ObjectId(pollId) },
+    {
+      $inc: { [`options.${optionIndex}.votes`]: 1 },
+      $addToSet: { [`options.${optionIndex}.votedBy`]: username }, // Add username to votedBy
+    }
   );
 
   res.status(200).json({ message: 'Vote registered successfully.' });
 }));
+
 
 
 
