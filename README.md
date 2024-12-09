@@ -82,5 +82,7 @@ Ignacio Leonardo: menambahkan fitur Poll dalam page polls, Menambahkan navbar di
 ### Progress per 8 Desember 2024
 Ferzen Kusuma: Memperbaiki navbar
 
+### Progress per 9 Desember 2024
+Ignacio Leonardo Joseph: Memperbaiki sistem Polls
 ## Dokumentasi website
 `masukkan gambar dari website yang dibuat`

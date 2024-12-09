@@ -107,7 +107,7 @@ const handleVote = async (pollId, optionIndex) => {
     const data = await getPolls(); // Refresh polls after a successful vote
     setPolls(data);
   } catch (err) {
-    const errorMessage = err.response?.data?.error || "An error occurred while voting.";
+    const errorMessage = err.response?.data?.error || "You have already voted on this poll or an error occurred.";
     setError(errorMessage);
   }
 };
