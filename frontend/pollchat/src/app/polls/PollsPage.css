@@ -28,15 +28,32 @@
     font-size: 14px;
 }
 
+/* Tombol umum */
 .button {
     padding: 10px 20px;
-    background-color: #4CAF50;
+    background-color: #4CAF50; /* Hijau */
     color: white;
     border: none;
     border-radius: 5px;
     cursor: pointer;
     margin-right: 5px;
 }
+
+/* Tombol delete khusus */
+.button.delete-button {
+    background-color: red; /* Merah */
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+/* Hover effect untuk tombol delete */
+.button.delete-button:hover {
+    background-color: darkred; /* Merah gelap */
+}
+
 
 .button:hover {
     background-color: #45a049;
@@ -57,7 +74,6 @@
     font-size: 0.9em;
     color: #555;
 }
-
   
 .error {
     color: red;

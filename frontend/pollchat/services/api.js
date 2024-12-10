@@ -178,4 +178,18 @@ export const api = {
     });
     if (!response.ok) throw new Error('Failed to vote');
   },
+  
+  deletePoll: async (pollId) => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/polls/${pollId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) throw new Error('Failed to delete poll');
+    return response.json();
+  },
+
 };

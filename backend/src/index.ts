@@ -285,6 +285,27 @@ app.post('/api/polls/:pollId/vote', authenticateToken, asyncHandler(async (req: 
   
 }));
 
+// Delete a poll by ID (Admin only)
+app.delete(
+  '/api/polls/:pollId',
+  authenticateToken,
+  authenticateAdmin,
+  asyncHandler(async (req: CustomRequest, res: Response) => {
+    const { pollId } = req.params;
+
+    if (!ObjectId.isValid(pollId)) {
+      return res.status(400).json({ error: 'Invalid Poll ID format.' });
+    }
+
+    const result = await pollCollection.deleteOne({ _id: new ObjectId(pollId) });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ error: 'Poll not found.' });
+    }
+
+    res.status(200).json({ message: 'Poll deleted successfully.' });
+  })
+);
 
 
 // Error Handling

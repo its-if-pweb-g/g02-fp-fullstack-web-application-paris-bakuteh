@@ -19,7 +19,7 @@ export default function PollsPage() {
   const [options, setOptions] = useState(["", ""]);
   const [expiryDate, setExpiryDate] = useState(""); // New state for expiry date
   const [error, setError] = useState("");
-  const [user, setUser] = useState<{ id: string; username: string; email: string} | null>(null);
+  const [user, setUser] = useState<{ id: string; username: string; email: string; role: string} | null>(null);
 
   const router = useRouter();
 
@@ -35,7 +35,7 @@ export default function PollsPage() {
           router.push("/login");
         } else {
           api.fetchUserDetails(decoded.id)
-            .then((userData) => setUser({ ...userData, token }))
+            .then((userData) => setUser({ ...userData, role: decoded.role, token }))
             .catch((err) => {
               console.error(err);
               router.push("/login");
@@ -108,6 +108,16 @@ export default function PollsPage() {
     }
   };
 
+  const handleDeletePoll = async (pollId) => {
+    try {
+      await api.deletePoll(pollId);
+      setPolls(polls.filter((poll) => poll._id !== pollId)); // Update state
+    } catch (err) {
+      setError('Failed to delete poll');
+    }
+  };
+  
+
 
   return (
     <>
@@ -160,29 +170,35 @@ export default function PollsPage() {
         </div>
 
         <div className="polls-list">
-          <h2>Existing Polls</h2>
-          {polls.length === 0 ? (
-            <p>No active polls available.</p>
-          ) : (
-            polls.map((poll) => (
-              <div key={poll._id} className="poll">
-                <h3>{poll.title}</h3>
-                {poll.options.map((option, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleVote(poll._id, index)}
-                    className="button"
-                  >
-                    {option.text} ({option.votes})
-                  </button>
-                ))}
-                {poll.expiryDate && (
-                  <p>Expires on: {new Date(poll.expiryDate).toLocaleString()}</p>
-                )}
-              </div>
-            ))
-          )}
-        </div>
+  <h2>Existing Polls</h2>
+  {polls.length === 0 ? (
+    <p>No active polls available.</p>
+  ) : (
+    polls.map((poll) => (
+      <div key={poll._id} className="poll">
+        <h3>{poll.title}</h3>
+        {poll.options.map((option, index) => (
+          <button
+            key={index}
+            onClick={() => handleVote(poll._id, index)}
+            className="button"
+          >
+            {option.text} ({option.votes})
+          </button>
+        ))}
+        {/* Tombol delete ditampilkan tanpa pengecekan role */}
+        {user?.role === 'admin' && (
+        <button onClick={() => handleDeletePoll(poll._id)} className="button delete-button">
+          Delete Poll
+        </button>
+        )}
+        {poll.expiryDate && (
+          <p>Expires on: {new Date(poll.expiryDate).toLocaleString()}</p>
+        )}
+      </div>
+    ))
+  )}
+</div>
 
         {error && <p className="error">{error}</p>}
       </div>
