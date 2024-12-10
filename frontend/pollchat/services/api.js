@@ -133,3 +133,4 @@ export const votePoll = async (pollId, optionIndex) => {
   if (!response.ok) throw new Error('Failed to vote');
 };
 
+

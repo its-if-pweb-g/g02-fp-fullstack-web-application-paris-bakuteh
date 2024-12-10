@@ -84,5 +84,7 @@ Ferzen Kusuma: Memperbaiki navbar
 
 ### Progress per 9 Desember 2024
 Ignacio Leonardo Joseph: Memperbaiki sistem Polls
+
+
 ## Dokumentasi website
 `masukkan gambar dari website yang dibuat`

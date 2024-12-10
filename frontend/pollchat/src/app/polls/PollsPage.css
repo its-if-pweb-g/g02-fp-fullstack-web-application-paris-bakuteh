@@ -57,17 +57,7 @@
     font-size: 0.9em;
     color: #555;
 }
-.delete-button {
-    background-color: red;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    cursor: pointer;
-    border-radius: 3px;
-  }
-  .delete-button:hover {
-    background-color: darkred;
-  }
+
   
 .error {
     color: red;

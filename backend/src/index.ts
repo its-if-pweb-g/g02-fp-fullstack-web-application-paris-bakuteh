@@ -268,8 +268,8 @@ app.post('/api/polls/:pollId/vote', authenticateToken, asyncHandler(async (req: 
   );
 
   res.status(200).json({ message: 'Vote registered successfully.' });
+  
 }));
-
 
 
 
