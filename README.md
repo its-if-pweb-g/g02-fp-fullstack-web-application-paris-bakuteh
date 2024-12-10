@@ -93,7 +93,6 @@ Ferzen Kusuma: Menambahkan konten dashboard
 Ignacio Leonardo: Menambahkan tombol Delete pada Poll
 
 ## Dokumentasi website
-`masukkan gambar dari website yang dibuat`
 
 ![alt text](image.png)
 
