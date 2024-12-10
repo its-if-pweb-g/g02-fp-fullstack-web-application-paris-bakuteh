@@ -41,11 +41,11 @@ Jika menggunakan windows powershell, navigasi ke folder frontend/pollchat. Kemud
 ## Progress pembuatan dan pembagian tugas per anggota
 
 ### Pembagian tugas
-Ferzen Kusuma: Fitur Register, Login, Logout, dan sebagian Chat
+Ferzen Kusuma: Fitur Register, Login, Logout, sebagian Chat, dan dashboard
 
 Azhar Hafiz Andanianto: Fitur chat
 
-Ignacio Leonardo Joseph: Dashboard
+Ignacio Leonardo Joseph: Dashboard dan polls
 
 ### Progress per 25 November 2024
 Ferzen Kusuma: Membuat fitur Register (belum css)
@@ -80,13 +80,15 @@ Azhar Hafiz Andanianto: Implementasi fitur chat/message
 Ignacio Leonardo: menambahkan fitur Poll dalam page polls, Menambahkan navbar di setiap page.
 
 ### Progress per 8 Desember 2024
-Ferzen Kusuma: Memperbaiki navbar
+Ferzen Kusuma: Memperbaiki komponen navbar
 
 ### Progress per 9 Desember 2024
 Ignacio Leonardo Joseph: Memperbaiki sistem Polls
 
 ### Progress per 10 Desember 2024
 Azhar Hafiz Andanianto: Progress implementasi fitur message frontend
+
+Ferzen Kusuma: Menambahkan konten dashboard
 
 ## Dokumentasi website
 `masukkan gambar dari website yang dibuat`
