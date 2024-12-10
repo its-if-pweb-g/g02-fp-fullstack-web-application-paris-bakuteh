@@ -182,11 +182,24 @@ export default function ChatPage() {
   const handleSendMessage = () => {
     if (!newMessage.trim() || !currentChatRecipient || !user || !ws.current) return;
 
+    console.log('Current User:', user);
+    console.log('Current Chat Recipient:', currentChatRecipient);
+
     const tempId = `${Date.now()}-${user.id}`;
 
+    // ----------------------------------------------------------- DEBUG (recipient and sender id is undefined)-------------------------------------------
+
+    console.log('Sending WebSocket Message:', {
+      type: 'send-message',
+      sender: user,
+      recipient: currentChatRecipient,
+      message: newMessage.trim(),
+      tempId,
+  });
+
     const chatMessage: ChatMessage = {
-      sender: user.id,
-      recipient: user.id,
+      sender: user.username,
+      recipient: currentChatRecipient.username,
       message: newMessage.trim(),
       timestamp: new Date().toISOString(),
       readBy: [],
@@ -194,8 +207,8 @@ export default function ChatPage() {
 
     ws.current.send(JSON.stringify({
       type: 'send-message',
-      sender: user.id,
-      recipient: currentChatRecipient.id,
+      sender: user,
+      recipient: currentChatRecipient,
       message: newMessage.trim(),
       tempId,
     }));
@@ -241,7 +254,9 @@ export default function ChatPage() {
             {filteredUsers.map((user, index) => (
               <li
                 key={user.id || index}
-                onClick={() => handleSelectUser(user)}
+                onClick={() => {
+                  handleSelectUser(user);
+                }}
                 className={`p-2 rounded-md cursor-pointer ${
                   user.id === currentChatRecipient?.id
                     ? 'bg-blue-500'
