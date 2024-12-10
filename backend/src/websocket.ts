@@ -26,7 +26,6 @@ MongoClient.connect(MONGO_URL)
     });
 
 interface ChatMessage {
-    _id: string;
     sender: string;
     recipient: string;
     message: string;
@@ -35,6 +34,7 @@ interface ChatMessage {
 }
   
 interface MessageData {
+    id: string;
     type: 'send-message' | 'read-receipt' | 'fetch-messages';
     token?: string;
     sender: string;
@@ -87,6 +87,11 @@ export default function setupWebSocket(server: any): void {
         users.set(userId, ws);
 
         ws.on('message', async (data: string) => {
+            if (data.length > 1024) {
+                ws.send(JSON.stringify({ error: 'Message size exceeds limit' }));
+                return;
+            }
+
             try {
                 const messageData = JSON.parse(data) as MessageData;
 
@@ -118,7 +123,6 @@ export default function setupWebSocket(server: any): void {
 
                             // Save message to MongoDB
                             const chatMessage: ChatMessage = {
-                                _id: tempMessageId,
                                 sender,
                                 recipient,
                                 message,
@@ -142,20 +146,6 @@ export default function setupWebSocket(server: any): void {
                                 });
                             }
 
-                            // Fetch the updated chat to get the final `_id` for the new message
-                            const updatedChat = await chatCollection.findOne({
-                                participants: { $all: [sender, recipient] },
-                            });
-
-                            // Get the actual `id` of the newly saved message
-                            const savedMessage = updatedChat?.messages.find(
-                                (msg) => msg._id === tempMessageId
-                            );
-
-                            if (savedMessage) {
-                                chatMessage._id = savedMessage._id; // Update with the final message ID
-                            }
-
                             const recipientWs = users.get(recipient);
 
                             // Send message to recipient if they're online
@@ -170,8 +160,9 @@ export default function setupWebSocket(server: any): void {
                             // Read receipt logic
                             const { messageId, sender } = messageData;
 
+                            const messageIdObject = new ObjectId(messageId); // Convert to ObjectId
                             await chatCollection.updateOne(
-                                { 'messages._id': new ObjectId(messageId) },
+                                { 'messages._id': messageIdObject }, // Adjust field to match your schema
                                 { $addToSet: { 'messages.$.readBy': sender } }
                             );
 

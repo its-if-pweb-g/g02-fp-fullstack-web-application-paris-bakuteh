@@ -7,7 +7,6 @@ import { jwtDecode } from "jwt-decode";
 import Navbar from '../../components/Navbar';
 
 interface ChatMessage {
-  _id: string;
   sender: string;
   recipient: string;
   message: string;
@@ -16,14 +15,13 @@ interface ChatMessage {
 }
 
 interface MessageData {
+  id: string;
   type: 'send-message' | 'read-receipt' | 'fetch-messages';
   token?: string;
   sender: string;
   recipient?: string;
   message?: string;
   messageId?: string;
-  _id?: string;
-  tempId?: string;
 }
 
 interface User {
@@ -106,16 +104,25 @@ export default function ChatPage() {
 
       fetchUsers();
     }
-  }, [token, userId]);
+  }, [token]);
 
   useEffect(() => {
     if (token) {
       const connectWebSocket = () => {
         ws.current = new WebSocket(`ws://localhost:5000/?token=${token}`);
+        
         ws.current.onopen = () => console.log('WebSocket connected');
+        
         ws.current.onmessage = (event) => handleWebSocketMessage(event);
-        ws.current.onclose = () => setTimeout(connectWebSocket, 5000);
-        ws.current.onerror = console.error;
+        
+        ws.current.onclose = () => {
+          console.log('WebSocket connection closed. Reconnecting...');
+          setTimeout(connectWebSocket, 5000); // Reconnect after 5 seconds
+        };
+
+        ws.current.onerror = (error) => {
+          console.error('WebSocket error:', error);
+        };
       };
       connectWebSocket();
       return () => ws.current?.close();
@@ -126,17 +133,18 @@ export default function ChatPage() {
     try {
       const data: MessageData = JSON.parse(event.data);
 
-      if (data.type === 'send-message' && data._id && data.tempId) {
+      if (data.type === 'fetch-messages' && Array.isArray(data.message)) {
+        setMessages(data.message);
+      } else if (data.type === 'send-message' && data.sender && data.message) {
         const chatId = data.sender === userId ? data.recipient! : data.sender;
 
         setChatLog((prevLogs) => ({
           ...prevLogs,
-          [chatId]: prevLogs[chatId]?.map((msg) =>
-            msg._id === data.tempId ? { ...msg, _id: data._id! } : msg
-          ) || [],
+          [chatId]: [
+            ...(prevLogs[chatId] || []),
+            { sender: data.sender, recipient: data.recipient!, message: data.message!, timestamp: new Date().toISOString(), readBy: [] },
+          ],
         }));
-      } else if (data.type === 'fetch-messages' && Array.isArray(data.message)) {
-        setMessages(data.message);
       }
     } catch (error) {
       console.error('Error processing WebSocket message:', error);
@@ -177,7 +185,6 @@ export default function ChatPage() {
     const tempId = `${Date.now()}-${user.id}`;
 
     const chatMessage: ChatMessage = {
-      _id: tempId,
       sender: user.id,
       recipient: user.id,
       message: newMessage.trim(),
@@ -209,7 +216,6 @@ export default function ChatPage() {
         ws.current?.send(
           JSON.stringify({
             type: 'read-receipt',
-            messageId: msg._id,
             sender: userId,
           })
         );
