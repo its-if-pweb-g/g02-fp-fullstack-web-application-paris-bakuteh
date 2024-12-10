@@ -10,72 +10,42 @@ import { jwtDecode } from "jwt-decode";
 interface DecodedToken {
   id: string;
   username: string;
-  role: string;
   exp: number;
 }
-
-const PollItem = ({ poll, user, onDelete }) => {
-  const isAdmin = user?.role === "admin";
-
-  const deletePoll = async (pollId) => {
-    if (window.confirm("Are you sure you want to delete this poll?")) {
-      try {
-        const response = await fetch(`/api/polls/${pollId}`, {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${user.token}` },
-        });
-        if (response.ok) {
-          alert("Poll deleted successfully.");
-          onDelete(pollId); // Update UI after delete
-        } else {
-          const data = await response.json();
-          alert(data.message || "Failed to delete poll.");
-        }
-      } catch (error) {
-        console.error("Error deleting poll:", error);
-        alert("An error occurred.");
-      }
-    }
-  };
-
-  return (
-    <div className="poll-item">
-      <h3>{poll.title}</h3>
-      {poll.options.map((option, index) => (
-        <p key={index}>
-          {option.text}: {option.votes} votes
-        </p>
-      ))}
-      {poll.expiryDate && (
-        <p>Expires on: {new Date(poll.expiryDate).toLocaleString()}</p>
-      )}
-      {isAdmin && (
-        <button onClick={() => deletePoll(poll._id)} className="delete-button">
-          Delete
-        </button>
-      )}
-    </div>
-  );
-};
 
 export default function PollsPage() {
   const [polls, setPolls] = useState([]);
   const [title, setTitle] = useState("");
   const [options, setOptions] = useState(["", ""]);
-  const [expiryDate, setExpiryDate] = useState("");
+  const [expiryDate, setExpiryDate] = useState(""); // New state for expiry date
   const [error, setError] = useState("");
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<{ id: string; username: string; email: string} | null>(null);
 
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem('token');
     if (token) {
       try {
         const decoded: DecodedToken = jwtDecode(token);
         const currentTime = Math.floor(Date.now() / 1000);
 
         if (decoded.exp < currentTime) {
+<<<<<<< HEAD
+          // Token expired, redirect to login
+          localStorage.removeItem('token');
+          router.push('/login');
+        }
+
+        //If token is valid, then fetch user details
+        else{
+          fetchUserDetails(decoded.id)
+          .then((userData) => setUser(userData))
+          .catch((err) => {
+            console.error(err);
+            router.push('/login');
+          });
+=======
           localStorage.removeItem("token");
           router.push("/login");
         } else {
@@ -85,27 +55,33 @@ export default function PollsPage() {
               console.error(err);
               router.push("/login");
             });
+>>>>>>> c9b736b81019b40891753099c5077c7702862df4
         }
       } catch (error) {
-        localStorage.removeItem("token");
-        router.push("/login");
+        // Invalid token, redirect to login
+        localStorage.removeItem('token');
+        router.push('/login');
       }
-    } else {
-      router.push("/login");
+    } 
+    else {
+      // No token, redirect to login
+      router.push('/login');
     }
   }, [router]);
 
+  // Fetch polls on load
   useEffect(() => {
     const fetchPolls = async () => {
       try {
         const data = await api.getPolls();
         const now = new Date();
 
+        // Filter active polls based on expiry date
         const activePolls = data.filter((poll) => {
           if (poll.expiryDate) {
             return new Date(poll.expiryDate) > now;
           }
-          return true;
+          return true; // Show polls without expiry
         });
 
         setPolls(activePolls);
@@ -116,6 +92,7 @@ export default function PollsPage() {
     fetchPolls();
   }, []);
 
+  // Create a new poll
   const handleCreatePoll = async () => {
     try {
       if (!title || options.some((option) => !option.trim())) {
@@ -134,6 +111,19 @@ export default function PollsPage() {
     }
   };
 
+<<<<<<< HEAD
+// Vote on a poll
+const handleVote = async (pollId, optionIndex) => {
+  try {
+    await votePoll(pollId, optionIndex);
+    const data = await getPolls(); // Refresh polls after a successful vote
+    setPolls(data);
+  } catch (err) {
+    const errorMessage = err.response?.data?.error || "You have already voted on this poll or an error occurred.";
+    setError(errorMessage);
+  }
+};
+=======
   const handleVote = async (pollId, optionIndex) => {
     try {
       await api.votePoll(pollId, optionIndex);
@@ -146,18 +136,12 @@ export default function PollsPage() {
       setError(errorMessage);
     }
   };
+>>>>>>> c9b736b81019b40891753099c5077c7702862df4
 
-  const handleDeletePoll = (pollId) => {
-    setPolls((prevPolls) => prevPolls.filter((poll) => poll._id !== pollId));
-  };
 
   return (
     <>
-      <Navbar
-        currentPath="/polls"
-        currentUsername={user?.username || ""}
-        currentEmail={user?.email || ""}
-      />
+      <Navbar currentPath="/polls" currentUsername={user?.username || ''} currentEmail={user?.email || ''}/>
       <div className="polls-container">
         <h1 className="title">Polls</h1>
 
@@ -170,16 +154,14 @@ export default function PollsPage() {
             onChange={(e) => setTitle(e.target.value)}
             className="input"
           />
-          {options.map((option, index) => (
+            {options.map((option, index) => (
             <div key={index} className="option">
               <input
                 type="text"
                 placeholder={`Option ${index + 1}`}
                 value={option}
                 onChange={(e) =>
-                  setOptions(
-                    options.map((opt, i) => (i === index ? e.target.value : opt))
-                  )
+                  setOptions(options.map((opt, i) => (i === index ? e.target.value : opt)))
                 }
                 className="input"
               />
@@ -213,12 +195,21 @@ export default function PollsPage() {
             <p>No active polls available.</p>
           ) : (
             polls.map((poll) => (
-              <PollItem
-                key={poll._id}
-                poll={poll}
-                user={user}
-                onDelete={handleDeletePoll}
-              />
+              <div key={poll._id} className="poll">
+                <h3>{poll.title}</h3>
+                {poll.options.map((option, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleVote(poll._id, index)}
+                    className="button"
+                  >
+                    {option.text} ({option.votes})
+                  </button>
+                ))}
+                {poll.expiryDate && (
+                  <p>Expires on: {new Date(poll.expiryDate).toLocaleString()}</p>
+                )}
+              </div>
             ))
           )}
         </div>
