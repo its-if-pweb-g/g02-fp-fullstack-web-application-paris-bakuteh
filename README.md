@@ -96,10 +96,11 @@ Ignacio Leonardo: Menambahkan tombol Delete pada Poll
 
 ![image](https://github.com/user-attachments/assets/35e5d231-d2de-4d24-bf7b-110342e4ab8a)
 
-![image](https://github.com/user-attachments/assets/317107b8-7be2-41af-b9a3-22e53aa1f78d)
+![Uploading image.png…]()
 
+![image](https://github.com/user-attachments/assets/317107b8-7be2-41af-b9a3-22e53aa1f78d)
 
 ![image](https://github.com/user-attachments/assets/a540a354-360a-42de-83d4-093963414a64)
 
-![Uploading image.png…]()
+
 
