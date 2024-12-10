@@ -128,8 +128,10 @@ export const api = {
       throw new Error('Both user IDs are required');
     }
 
+    const [sortedUser1Id, sortedUser2Id] = [user1Id, user2Id].sort();
+
     try {
-      const response = await fetch(`${API_URL}/chats/${user1Id}/${user2Id}`, {
+      const response = await fetch(`${API_URL}/chats/${sortedUser1Id}/${sortedUser2Id}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,

@@ -36,7 +36,6 @@ interface ChatMessage {
 interface MessageData {
     id: string;
     type: 'send-message' | 'read-receipt' | 'fetch-messages';
-    token?: string;
     sender: string;
     recipient?: string;
     message?: string;

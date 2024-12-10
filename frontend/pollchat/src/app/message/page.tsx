@@ -17,7 +17,6 @@ interface ChatMessage {
 interface MessageData {
   id: string;
   type: 'send-message' | 'read-receipt' | 'fetch-messages';
-  token?: string;
   sender: string;
   recipient?: string;
   message?: string;
@@ -48,7 +47,7 @@ export default function ChatPage() {
   const [chatLog, setChatLog] = useState<ChatLogs>({});
   const [token, setToken] = useState<string | null>(null);
   const [userId, setUserId] = useState<string>('');
-  const [user, setUser] = useState<{ id: string; username: string; email: string} | null>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   const router = useRouter();
 
@@ -136,7 +135,7 @@ export default function ChatPage() {
       if (data.type === 'fetch-messages' && Array.isArray(data.message)) {
         setMessages(data.message);
       } else if (data.type === 'send-message' && data.sender && data.message) {
-        const chatId = data.sender === userId ? data.recipient! : data.sender;
+        const chatId = [data.sender, data.recipient].sort().join('-');
 
         setChatLog((prevLogs) => ({
           ...prevLogs,
@@ -169,7 +168,8 @@ export default function ChatPage() {
 
     // Request chat history for the selected user
     if (user) {
-      api.fetchChatMessages(user.id, recipient.id)
+      const sortedUserIds = [user.id, recipient.id].sort();
+      api.fetchChatMessages(sortedUserIds[0], sortedUserIds[1])
         .then((chatMessages) => {
           setMessages(chatMessages); // Update state with the fetched messages
         })
@@ -185,6 +185,7 @@ export default function ChatPage() {
     console.log('Current User:', user);
     console.log('Current Chat Recipient:', currentChatRecipient);
 
+    const sortedUserIds = [user.id, currentChatRecipient.id].sort();
     const tempId = `${Date.now()}-${user.id}`;
 
     // ----------------------------------------------------------- DEBUG (recipient and sender id is undefined)-------------------------------------------
@@ -195,7 +196,7 @@ export default function ChatPage() {
       recipient: currentChatRecipient,
       message: newMessage.trim(),
       tempId,
-  });
+    });
 
     const chatMessage: ChatMessage = {
       sender: user.username,
@@ -204,6 +205,8 @@ export default function ChatPage() {
       timestamp: new Date().toISOString(),
       readBy: [],
     };
+
+    setMessages((prevMessages) => [...prevMessages, chatMessage]);
 
     ws.current.send(JSON.stringify({
       type: 'send-message',
@@ -215,7 +218,7 @@ export default function ChatPage() {
 
     setChatLog((prevLogs) => ({
       ...prevLogs,
-      [currentChatRecipient.id]: [...(prevLogs[currentChatRecipient.id] || []), chatMessage],
+      [sortedUserIds.join('-')]: [...(prevLogs[sortedUserIds.join('-')] || []), chatMessage],
     }));
     setNewMessage('');
   };
@@ -285,14 +288,14 @@ export default function ChatPage() {
                   <div
                     key={index}
                     className={`flex ${
-                      msg.sender === userId ? 'justify-end' : 'justify-start'
+                      msg.sender === userId ? 'justify-start' : 'justify-end'
                     }`}
                   >
                     <div
                       className={`p-2 rounded-lg max-w-xs ${
                         msg.sender === userId
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-gray-300 text-black'
+                          ? 'bg-gray-300 text-black'
+                          : 'bg-blue-500 text-white'
                       }`}
                     >
                       <p>{msg.message}</p>
