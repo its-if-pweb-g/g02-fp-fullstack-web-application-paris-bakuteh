@@ -147,9 +147,6 @@ export const api = {
     }
   },
 
-<<<<<<< HEAD
-
-=======
   createPoll: async (pollData) => {
     const token = getToken();
     const response = await fetch(`${API_URL}/polls`, {
@@ -182,4 +179,3 @@ export const api = {
     if (!response.ok) throw new Error('Failed to vote');
   },
 };
->>>>>>> c9b736b81019b40891753099c5077c7702862df4

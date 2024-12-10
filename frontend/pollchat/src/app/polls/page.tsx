@@ -31,21 +31,6 @@ export default function PollsPage() {
         const currentTime = Math.floor(Date.now() / 1000);
 
         if (decoded.exp < currentTime) {
-<<<<<<< HEAD
-          // Token expired, redirect to login
-          localStorage.removeItem('token');
-          router.push('/login');
-        }
-
-        //If token is valid, then fetch user details
-        else{
-          fetchUserDetails(decoded.id)
-          .then((userData) => setUser(userData))
-          .catch((err) => {
-            console.error(err);
-            router.push('/login');
-          });
-=======
           localStorage.removeItem("token");
           router.push("/login");
         } else {
@@ -55,7 +40,6 @@ export default function PollsPage() {
               console.error(err);
               router.push("/login");
             });
->>>>>>> c9b736b81019b40891753099c5077c7702862df4
         }
       } catch (error) {
         // Invalid token, redirect to login
@@ -111,19 +95,6 @@ export default function PollsPage() {
     }
   };
 
-<<<<<<< HEAD
-// Vote on a poll
-const handleVote = async (pollId, optionIndex) => {
-  try {
-    await votePoll(pollId, optionIndex);
-    const data = await getPolls(); // Refresh polls after a successful vote
-    setPolls(data);
-  } catch (err) {
-    const errorMessage = err.response?.data?.error || "You have already voted on this poll or an error occurred.";
-    setError(errorMessage);
-  }
-};
-=======
   const handleVote = async (pollId, optionIndex) => {
     try {
       await api.votePoll(pollId, optionIndex);
@@ -136,7 +107,6 @@ const handleVote = async (pollId, optionIndex) => {
       setError(errorMessage);
     }
   };
->>>>>>> c9b736b81019b40891753099c5077c7702862df4
 
 
   return (
