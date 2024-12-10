@@ -23,25 +23,16 @@ const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => P
 
 let db: Db;
 let userCollection: Collection;
+let chatCollection: Collection;
+let pollCollection: Collection;
 
 MongoClient.connect(MONGO_URL)
     .then((client) => {
         db = client.db(DATABASE_NAME);
         userCollection = db.collection('users');
+        chatCollection = db.collection('chats');
+        pollCollection = db.collection('polls');
         console.log(`Connected to MongoDB database: ${DATABASE_NAME}`);
-    })
-    .catch((error) => {
-        console.error("Failed to connect to MongoDB:", error);
-        process.exit(1);
-    });
-
-let pollCollection: Collection;
-
-MongoClient.connect(MONGO_URL)
-    .then((client) => {
-      db = client.db(DATABASE_NAME);
-      pollCollection = db.collection('polls'); // Tambahkan koleksi polls
-       console.log(`Connected to MongoDB database: ${DATABASE_NAME}`);
     })
     .catch((error) => {
         console.error("Failed to connect to MongoDB:", error);
@@ -160,6 +151,29 @@ app.get('/api/users', authenticateToken, asyncHandler(async (req: CustomRequest,
     .project({ username: 1, _id: 0 })
     .toArray();
   res.status(200).json(users);
+}));
+
+app.get('/api/chats/:user1/:user2', authenticateToken, asyncHandler(async (req: Request, res: Response) => {
+  const { user1, user2 } = req.params;
+
+  if (!user1 || !user2) {
+    return res.status(400).json({ message: 'Both user1 and user2 IDs are required' });
+  }
+
+  try {
+    const chat = await chatCollection.findOne({
+      participants: { $all: [user1, user2] },
+    });
+
+    if (!chat) {
+      return res.status(404).json({ message: 'No chat history found.' });
+    }
+
+    res.status(200).json(chat.messages);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error fetching chat messages.' });
+  }
 }));
 
 app.get('/api/singleUser/:userId', async (req, res) => {

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from "react";
-import {loginUser} from '../../../services/api';
+import { api } from '../../../services/api';
 import Link from "next/link";
 import styles from '../../components/Login.module.css';
 import { TransitionLink } from "@/components/utils/TransitionLink";
@@ -55,7 +55,7 @@ export default function LoginPage(){
     e.preventDefault();
 
     try {
-      const response = await loginUser(formData);
+      const response = await api.loginUser(formData);
 
       if (response) {
         console.log('Login Response:', response); // Debugging

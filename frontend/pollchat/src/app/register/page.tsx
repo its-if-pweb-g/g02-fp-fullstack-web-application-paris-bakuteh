@@ -1,7 +1,7 @@
 'use client'
 
 import React, {useState} from "react";
-import {registerUser} from '../../../services/api';
+import { api } from '../../../services/api';
 import styles from '../../components/Register.module.css';
 import { useRouter } from 'next/navigation';
 import { motion } from "motion/react";
@@ -31,7 +31,7 @@ export default function RegisterPage(){
         e.preventDefault();
 
         try {
-            const response = await registerUser(formData);
+            const response = await api.registerUser(formData);
         
             if (response) {
               setSuccess('Registration successful! Redirecting to Login page...');

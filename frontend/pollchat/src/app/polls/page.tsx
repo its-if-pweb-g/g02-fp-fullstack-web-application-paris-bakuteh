@@ -1,10 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { createPoll, getPolls, votePoll } from "../../../services/api";
+import { api } from "../../../services/api";
 import Navbar from "../../components/Navbar";
 import "./PollsPage.css";
-import { fetchUserDetails } from "../../../services/api";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 
@@ -32,6 +31,7 @@ export default function PollsPage() {
         const currentTime = Math.floor(Date.now() / 1000);
 
         if (decoded.exp < currentTime) {
+<<<<<<< HEAD
           // Token expired, redirect to login
           localStorage.removeItem('token');
           router.push('/login');
@@ -45,6 +45,17 @@ export default function PollsPage() {
             console.error(err);
             router.push('/login');
           });
+=======
+          localStorage.removeItem("token");
+          router.push("/login");
+        } else {
+          api.fetchUserDetails(decoded.id)
+            .then((userData) => setUser({ ...userData, token }))
+            .catch((err) => {
+              console.error(err);
+              router.push("/login");
+            });
+>>>>>>> c9b736b81019b40891753099c5077c7702862df4
         }
       } catch (error) {
         // Invalid token, redirect to login
@@ -62,7 +73,7 @@ export default function PollsPage() {
   useEffect(() => {
     const fetchPolls = async () => {
       try {
-        const data = await getPolls();
+        const data = await api.getPolls();
         const now = new Date();
 
         // Filter active polls based on expiry date
@@ -89,17 +100,18 @@ export default function PollsPage() {
         return;
       }
 
-      await createPoll({ title, options, expiryDate });
+      await api.createPoll({ title, options, expiryDate });
       setTitle("");
       setOptions(["", ""]);
       setExpiryDate("");
-      const data = await getPolls();
+      const data = await api.getPolls();
       setPolls(data);
     } catch (err) {
       setError("Failed to create poll");
     }
   };
 
+<<<<<<< HEAD
 // Vote on a poll
 const handleVote = async (pollId, optionIndex) => {
   try {
@@ -111,6 +123,20 @@ const handleVote = async (pollId, optionIndex) => {
     setError(errorMessage);
   }
 };
+=======
+  const handleVote = async (pollId, optionIndex) => {
+    try {
+      await api.votePoll(pollId, optionIndex);
+      const data = await api.getPolls();
+      setPolls(data);
+    } catch (err) {
+      const errorMessage =
+        err.response?.data?.error ||
+        "You have already voted on this poll or an error occurred.";
+      setError(errorMessage);
+    }
+  };
+>>>>>>> c9b736b81019b40891753099c5077c7702862df4
 
 
   return (

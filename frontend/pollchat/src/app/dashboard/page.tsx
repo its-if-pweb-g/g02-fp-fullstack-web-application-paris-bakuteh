@@ -6,7 +6,7 @@ import { jwtDecode } from 'jwt-decode';
 import Image from 'next/image';
 import { TransitionLink } from '@/components/utils/TransitionLink';
 import Link from 'next/link';
-import { fetchUserDetails } from '../../../services/api';
+import { api } from '../../../services/api';
 import Navbar from '../../components/Navbar';
 
 
@@ -38,7 +38,7 @@ export default function DashboardPage() {
 
         //If token is valid, then fetch user details
         else{
-          fetchUserDetails(decoded.id)
+          api.fetchUserDetails(decoded.id)
           .then((userData) => setUser(userData))
           .catch((err) => {
             console.error(err);

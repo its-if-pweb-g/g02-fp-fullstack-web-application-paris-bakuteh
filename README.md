@@ -85,6 +85,11 @@ Ferzen Kusuma: Memperbaiki navbar
 ### Progress per 9 Desember 2024
 Ignacio Leonardo Joseph: Memperbaiki sistem Polls
 
+<<<<<<< HEAD
+=======
+### Progress per 10 Desember 2024
+Azhar Hafiz Andanianto: Progress implementasi fitur message frontend
+>>>>>>> c9b736b81019b40891753099c5077c7702862df4
 
 ## Dokumentasi website
 `masukkan gambar dari website yang dibuat`
