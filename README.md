@@ -86,7 +86,7 @@ Ferzen Kusuma: Memperbaiki komponen navbar
 Ignacio Leonardo Joseph: Memperbaiki sistem Polls
 
 ### Progress per 10 Desember 2024
-Azhar Hafiz Andanianto: Progress implementasi fitur message frontend
+Azhar Hafiz Andanianto: Implementasi fitur send message frontend + display message setelah send + display message setelah send
 
 Ferzen Kusuma: Menambahkan konten dashboard
 

@@ -26,6 +26,7 @@ MongoClient.connect(MONGO_URL)
     });
 
 interface ChatMessage {
+    id: string;
     sender: string;
     recipient: string;
     message: string;
@@ -117,11 +118,9 @@ export default function setupWebSocket(server: any): void {
                             // Send message logic
                             const { sender, recipient, message } = messageData;
 
-                            // Generate a temporary unique ID for the message
-                            const tempMessageId = new ObjectId().toHexString();
-
                             // Save message to MongoDB
                             const chatMessage: ChatMessage = {
+                                id: `${Date.now()}-${sender}`,
                                 sender,
                                 recipient,
                                 message,
@@ -159,10 +158,13 @@ export default function setupWebSocket(server: any): void {
                             // Read receipt logic
                             const { messageId, sender } = messageData;
 
-                            const messageIdObject = new ObjectId(messageId); // Convert to ObjectId
                             await chatCollection.updateOne(
-                                { 'messages._id': messageIdObject }, // Adjust field to match your schema
-                                { $addToSet: { 'messages.$.readBy': sender } }
+                                { 'messages._id': messageId }, // Adjust field to match your schema
+                                { 
+                                    $addToSet: {
+                                        'messages.$.readBy': { user: sender, readAt: new Date() },
+                                    },
+                                }
                             );
 
                             // Notify sender that their message has been read
