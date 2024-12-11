@@ -7,6 +7,7 @@ import { jwtDecode } from "jwt-decode";
 import Navbar from '../../components/Navbar';
 
 interface ChatMessage {
+  id: string;
   sender: string;
   recipient: string;
   message: string;
@@ -15,7 +16,7 @@ interface ChatMessage {
 }
 
 interface MessageData {
-  id: string;
+  id?: string;
   type: 'send-message' | 'read-receipt' | 'fetch-messages';
   sender: string;
   recipient?: string;
@@ -133,16 +134,22 @@ export default function ChatPage() {
       const data: MessageData = JSON.parse(event.data);
 
       if (data.type === 'fetch-messages' && Array.isArray(data.message)) {
-        setMessages(data.message);
+        setMessages(data.message as ChatMessage[]);
       } else if (data.type === 'send-message' && data.sender && data.message) {
         const chatId = [data.sender, data.recipient].sort().join('-');
 
+        const newMessage: ChatMessage = {
+          id: `${Date.now()}-${data.sender}`,
+          sender: data.sender,
+          recipient: data.recipient!,
+          message: data.message!,
+          timestamp: new Date().toISOString(),
+          readBy: [],
+        };
+
         setChatLog((prevLogs) => ({
           ...prevLogs,
-          [chatId]: [
-            ...(prevLogs[chatId] || []),
-            { sender: data.sender, recipient: data.recipient!, message: data.message!, timestamp: new Date().toISOString(), readBy: [] },
-          ],
+          [chatId]: [...(prevLogs[chatId] || []), newMessage],
         }));
       }
     } catch (error) {
@@ -161,17 +168,25 @@ export default function ChatPage() {
 
   const handleSelectUser = (recipient: User) => {
     setCurrentChatRecipient(recipient);
-    setMessages([]); // Clear messages for the new chat
 
-    console.log('currentUser:', user);
-    console.log('currentChatRecipient:', recipient);
-
-    // Request chat history for the selected user
     if (user) {
-      const sortedUserIds = [user.id, recipient.id].sort();
+      // Request chat history for the selected user
+      const sortedUserIds = [user.username, recipient.username].sort();
       api.fetchChatMessages(sortedUserIds[0], sortedUserIds[1])
         .then((chatMessages) => {
           setMessages(chatMessages); // Update state with the fetched messages
+
+          // Send read-receipt for unread messages
+          const unreadMessages = chatMessages.filter((msg: ChatMessage) => !msg.readBy.includes(user.id));
+          unreadMessages.forEach((msg: ChatMessage) => {
+            ws.current?.send(
+              JSON.stringify({
+                type: 'read-receipt',
+                messageId: msg.id,
+                sender: user.id,
+              })
+            );
+          });
         })
         .catch((err) => {
           console.error('Error fetching chat history:', err);
@@ -181,9 +196,6 @@ export default function ChatPage() {
 
   const handleSendMessage = () => {
     if (!newMessage.trim() || !currentChatRecipient || !user || !ws.current) return;
-
-    console.log('Current User:', user);
-    console.log('Current Chat Recipient:', currentChatRecipient);
 
     const sortedUserIds = [user.id, currentChatRecipient.id].sort();
     const tempId = `${Date.now()}-${user.id}`;
@@ -199,6 +211,7 @@ export default function ChatPage() {
     });
 
     const chatMessage: ChatMessage = {
+      id: `${Date.now()}-${user.id}`,
       sender: user.username,
       recipient: currentChatRecipient.username,
       message: newMessage.trim(),
@@ -210,8 +223,8 @@ export default function ChatPage() {
 
     ws.current.send(JSON.stringify({
       type: 'send-message',
-      sender: user,
-      recipient: currentChatRecipient,
+      sender: user.username,
+      recipient: currentChatRecipient.username,
       message: newMessage.trim(),
       tempId,
     }));
@@ -225,19 +238,45 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (currentChatRecipient) {
-      const unreadMessages = messages.filter(
-        (msg) => !msg.readBy.includes(userId)
-      );
+      const unreadMessages = messages.filter((msg) => !msg.readBy.includes(userId));
       unreadMessages.forEach((msg) => {
         ws.current?.send(
           JSON.stringify({
             type: 'read-receipt',
+            messageId: msg.id,
             sender: userId,
           })
         );
       });
     }
-  }, [messages]);
+  }, [currentChatRecipient, messages]);
+
+  const renderMessagesWithDates = () => {
+    const sortedMessages = [...messages].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    let lastDate = '';
+
+    return sortedMessages.map((msg, index) => {
+      const messageDate = new Date(msg.timestamp).toLocaleDateString();
+      const showDateSeparator = messageDate !== lastDate;
+      if (showDateSeparator) lastDate = messageDate;
+
+      return (
+        <div key={index}>
+          {showDateSeparator && (
+            <div className="text-center text-gray-500 my-2">
+              {messageDate}
+            </div>
+          )}
+          <div className={`flex ${msg.sender === user?.username ? 'justify-end' : 'justify-start'}`}>
+            <div className={`p-2 rounded-lg max-w-xs ${msg.sender === user?.username ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'}`}>
+              <p>{msg.message}</p>
+              <small className="block text-xs text-gray-600">{new Date(msg.timestamp).toLocaleTimeString()}</small>
+            </div>
+          </div>
+        </div>
+      );
+    });
+  };
 
   return (
     <>
@@ -284,27 +323,7 @@ export default function ChatPage() {
 
               {/* Chat Messages */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {messages.map((msg, index) => (
-                  <div
-                    key={index}
-                    className={`flex ${
-                      msg.sender === userId ? 'justify-start' : 'justify-end'
-                    }`}
-                  >
-                    <div
-                      className={`p-2 rounded-lg max-w-xs ${
-                        msg.sender === userId
-                          ? 'bg-gray-300 text-black'
-                          : 'bg-blue-500 text-white'
-                      }`}
-                    >
-                      <p>{msg.message}</p>
-                      <small className="block text-xs text-gray-600">
-                        {new Date(msg.timestamp).toLocaleTimeString()}
-                      </small>
-                    </div>
-                  </div>
-                ))}
+                {renderMessagesWithDates()}
               </div>
 
               {/* Message Input */}

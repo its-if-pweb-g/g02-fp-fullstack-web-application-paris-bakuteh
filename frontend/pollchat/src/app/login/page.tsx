@@ -111,8 +111,8 @@ export default function LoginPage(){
             />
           </div>
           <div className="mb-4">
-            {error && <p className={`${styles.message} ${styles.error}`}>{error}</p>}
-            {success && <p className={`${styles.message} ${styles.success}`}>{success}</p>}
+            {error && <p className={`text-black ${styles.message} ${styles.error}`}>{error}</p>}
+            {success && <p className={`text-black ${styles.message} ${styles.success}`}>{success}</p>}
           </div>
           <div className="flex items-center justify-between">
             <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Login</button>
